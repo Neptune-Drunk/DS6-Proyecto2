@@ -3,7 +3,8 @@
 CREATE TABLE Categorias (
     Id INT AUTO_INCREMENT PRIMARY KEY,
     Nombre VARCHAR(100) NOT NULL,
-    Descripcion TEXT
+    Descripcion TEXT,
+    ImagenUrl VARCHAR(255)
 );
 
 CREATE TABLE Productos (
@@ -12,6 +13,7 @@ CREATE TABLE Productos (
     Descripcion TEXT,
     Precio DECIMAL(10,2) NOT NULL,
     ID_categorias INT,
+    ImagenUrl VARCHAR(255),
     FOREIGN KEY (ID_categorias) REFERENCES Categorias(Id)
 );
 

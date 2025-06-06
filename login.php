@@ -7,7 +7,7 @@
 </head>
 <body>
     <h1>Login to HyperDrive</h1>
-    <form action="authenticate.php" method="post">
+    <form action="autenticar.php" method="post">
         <label for="username">Username:</label>
         <input type="text" id="username" name="username" required>
         <br>
