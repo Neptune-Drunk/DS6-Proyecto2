@@ -22,7 +22,7 @@ if ($username && $password) {
                 header('Location: dashboard.php');
                 exit();
             } elseif ($rol === 'Consulta') {
-                header('Location: consulta.php');
+                header('Location: catalogo.php');
                 exit();
             } else {
                 echo 'Rol no válido.';
