@@ -67,6 +67,9 @@ $totalStock = 0; // Ajusta si tienes campo de stock
                     <button class="btn btn-primary" onclick="openModal('productModal')">
                         <i class="fas fa-plus"></i> Añadir Producto
                     </button>
+                    <a href="login.php" class="btn btn-danger" style="margin-left: 1rem;">
+                        <i class="fas fa-sign-out-alt"></i> Cerrar Sesión
+                    </a>
                 </div>
             </div>
         </div>
@@ -124,8 +127,6 @@ $totalStock = 0; // Ajusta si tienes campo de stock
                                 <th>Nombre</th>
                                 <th>Categoría</th>
                                 <th>Precio</th>
-                                <th>Stock</th>
-                                <th>Estado</th>
                                 <th>Acciones</th>
                             </tr>
                         </thead>
@@ -133,7 +134,7 @@ $totalStock = 0; // Ajusta si tienes campo de stock
                             <?php foreach ($products as $product): ?>
                                 <tr class="product-row" data-name="<?php echo strtolower($product['name']); ?>" data-category="<?php echo $product['category']; ?>">
                                     <td>
-                                        <img src="<?php echo $product['image']; ?>" alt="<?php echo htmlspecialchars($product['name']); ?>" class="product-image">
+                                        <img src="<?php echo $product['image'] ? $product['image'] : 'NOTEXTURE.jpeg'; ?>" alt="<?php echo htmlspecialchars($product['name']); ?>" class="product-image" onerror="this.src='NOTEXTURE.jpeg'">
                                     </td>
                                     <td class="product-name"><?php echo htmlspecialchars($product['name']); ?></td>
                                     <td>
@@ -146,7 +147,7 @@ $totalStock = 0; // Ajusta si tienes campo de stock
                                                 Acciones
                                             </button>
                                             <div class="dropdown-menu">
-                                                <a href="#" class="dropdown-item">
+                                                <a href="#" class="dropdown-item" onclick="editProduct(<?php echo $product['id']; ?>)">
                                                     <i class="fas fa-edit"></i> Editar
                                                 </a>
                                                 <a href="#" class="dropdown-item text-danger">
@@ -178,7 +179,7 @@ $totalStock = 0; // Ajusta si tienes campo de stock
                             <div class="category-image">
                                 <img src="<?php echo $category['image'] ?? 'https://via.placeholder.com/150x100?text=Sin+Imagen'; ?>" 
                                 alt="<?php echo htmlspecialchars($category['name']); ?>" 
-                                onerror="this.src='https://via.placeholder.com/150x100?text=Sin+Imagen'">
+                                onerror="this.src='NOTEXTURE.jpeg'" class="category-img">
                             </div>
                             <div class="category-info">
                                 <h4><?php echo htmlspecialchars($category['name']); ?></h4>
@@ -229,6 +230,17 @@ $totalStock = 0; // Ajusta si tienes campo de stock
                 <span class="close" onclick="closeModal('editCategoryModal')">&times;</span>
             </div>
             <div id="editCategoryFormContainer"></div>
+        </div>
+    </div>
+
+    <!-- Modal para Editar Producto -->
+    <div id="editProductModal" class="modal">
+        <div class="modal-content modal-large">
+            <div class="modal-header">
+                <h2>Editar Producto</h2>
+                <span class="close" onclick="closeModal('editProductModal')">&times;</span>
+            </div>
+            <div id="editProductFormContainer"></div>
         </div>
     </div>
 
@@ -307,6 +319,56 @@ $totalStock = 0; // Ajusta si tienes campo de stock
             });
         }
 
+        // Función para manejar el envío del formulario de edición de producto
+        function handleEditProductSubmit(event) {
+            event.preventDefault();
+            const form = event.target;
+            const formData = new FormData(form);
+            fetch('editar-producto.php', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    alert(data.message);
+                    closeModal('editProductModal');
+                    window.location.reload();
+                } else {
+                    alert(data.message);
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Error al procesar la solicitud');
+            });
+        }
+
+        // Función para manejar el envío del formulario de edición de categoría
+        function handleEditCategorySubmit(event) {
+            event.preventDefault();
+            const form = event.target;
+            const formData = new FormData(form);
+            fetch('editar-categoria.php', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    alert(data.message);
+                    closeModal('editCategoryModal');
+                    window.location.reload();
+                } else {
+                    alert(data.message);
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Error al procesar la solicitud');
+            });
+        }
+
         // Agregar event listeners cuando se cargan los formularios
         function loadCategoryForm() {
             const container = document.getElementById("categoryFormContainer");
@@ -350,6 +412,112 @@ $totalStock = 0; // Ajusta si tienes campo de stock
                 event.target.style.display = 'none';
             }
         }
+
+        // Función para abrir el modal de edición de producto y cargar el formulario
+        function editProduct(productId) {
+            const modal = document.getElementById('editProductModal');
+            modal.style.display = 'block';
+            const container = document.getElementById('editProductFormContainer');
+            fetch('editar-producto.php?id=' + productId)
+                .then(response => response.text())
+                .then(html => {
+                    container.innerHTML = html;
+                    const form = container.querySelector('#editProductForm');
+                    if (form) {
+                        form.addEventListener('submit', handleEditProductSubmit);
+                    }
+                })
+                .catch(error => {
+                    console.error('Error al cargar el formulario de edición de producto:', error);
+                    container.innerHTML = '<p>Error al cargar el formulario</p>';
+                });
+        }
+
+        // Función para abrir el modal de edición de categoría y cargar el formulario
+        function editCategory(categoryId) {
+            const modal = document.getElementById('editCategoryModal');
+            modal.style.display = 'block';
+            const container = document.getElementById('editCategoryFormContainer');
+            fetch('editar-categoria.php?id=' + categoryId)
+                .then(response => response.text())
+                .then(html => {
+                    container.innerHTML = html;
+                    const form = container.querySelector('#editCategoryForm');
+                    if (form) {
+                        form.addEventListener('submit', handleEditCategorySubmit);
+                    }
+                })
+                .catch(error => {
+                    console.error('Error al cargar el formulario de edición de categoría:', error);
+                    container.innerHTML = '<p>Error al cargar el formulario</p>';
+                });
+        }
+
+        // Función para manejar el dropdown de acciones
+        function toggleDropdown(button) {
+            const dropdownMenu = button.nextElementSibling;
+            const isOpen = dropdownMenu.classList.contains('show');
+            
+            // Cerrar todos los dropdowns abiertos
+            document.querySelectorAll('.dropdown-menu.show').forEach(menu => {
+                if (menu !== dropdownMenu) {
+                    menu.classList.remove('show');
+                }
+            });
+            
+            // Toggle el dropdown actual
+            dropdownMenu.classList.toggle('show');
+            
+            // Cerrar el dropdown al hacer clic fuera
+            if (!isOpen) {
+                document.addEventListener('click', function closeDropdown(e) {
+                    if (!button.contains(e.target) && !dropdownMenu.contains(e.target)) {
+                        dropdownMenu.classList.remove('show');
+                        document.removeEventListener('click', closeDropdown);
+                    }
+                });
+            }
+        }
+
+        // --- FILTROS Y BÚSQUEDA ---
+        const searchInput = document.getElementById('searchInput');
+        const categoryFilter = document.getElementById('categoryFilter');
+        const productsTableBody = document.getElementById('productsTableBody');
+        const noResults = document.getElementById('noResults');
+        const productCount = document.getElementById('productCount');
+
+        function filterProducts() {
+            const searchValue = searchInput.value.trim().toLowerCase();
+            const selectedCategory = categoryFilter.value;
+            let visibleCount = 0;
+
+            Array.from(productsTableBody.getElementsByClassName('product-row')).forEach(row => {
+                const name = row.getAttribute('data-name');
+                const category = row.getAttribute('data-category');
+                const matchesName = name.includes(searchValue);
+                const matchesCategory = (selectedCategory === 'all') || (category === selectedCategory);
+                if (matchesName && matchesCategory) {
+                    row.style.display = '';
+                    visibleCount++;
+                } else {
+                    row.style.display = 'none';
+                }
+            });
+
+            // Mostrar/ocultar mensaje de no resultados
+            if (visibleCount === 0) {
+                noResults.style.display = 'block';
+            } else {
+                noResults.style.display = 'none';
+            }
+            // Actualizar contador
+            productCount.textContent = visibleCount;
+        }
+
+        searchInput.addEventListener('input', filterProducts);
+        categoryFilter.addEventListener('change', filterProducts);
+        // Inicializar filtro al cargar
+        filterProducts();
     </script>
 </body>
 </html>
