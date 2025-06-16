@@ -24,10 +24,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 }
 
 // Si es GET, obtener datos de la categoría
-$id = $_GET['id'] ?? '';
+$id = isset($_GET['id']) ? intval($_GET['id']) : 0;
 $category = null;
-if ($id !== '') {
-    $stmt = $conn->prepare("SELECT * FROM Categorias WHERE Id=?");
+
+if ($id > 0) {
+    $stmt = $conn->prepare("SELECT * FROM Categorias WHERE Id = ?");
     $stmt->bind_param('i', $id);
     $stmt->execute();
     $result = $stmt->get_result();
@@ -35,21 +36,26 @@ if ($id !== '') {
         $category = $row;
     }
 }
+
+if (!$category) {
+    echo '<div class="error-message">Categoría no encontrada</div>';
+    exit;
+}
 ?>
 <div class="form-container">
     <form id="editCategoryForm" class="category-form" method="post">
-        <input type="hidden" name="id" value="<?php echo htmlspecialchars($category['Id'] ?? ''); ?>">
+        <input type="hidden" name="id" value="<?php echo htmlspecialchars($category['Id']); ?>">
         <div class="form-group">
             <label for="editCategoryName">Nombre de la Categoría *</label>
-            <input type="text" id="editCategoryName" name="name" value="<?php echo htmlspecialchars($category['Nombre'] ?? ''); ?>" required>
+            <input type="text" id="editCategoryName" name="name" value="<?php echo htmlspecialchars($category['Nombre']); ?>" required>
         </div>
         <div class="form-group">
             <label for="editCategoryDescription">Descripción</label>
-            <textarea id="editCategoryDescription" name="description"><?php echo htmlspecialchars($category['Descripcion'] ?? ''); ?></textarea>
+            <textarea id="editCategoryDescription" name="description"><?php echo htmlspecialchars($category['Descripcion']); ?></textarea>
         </div>
         <div class="form-group">
             <label for="editCategoryImage">URL de Imagen</label>
-            <input type="url" id="editCategoryImage" name="image" value="<?php echo htmlspecialchars($category['ImagenUrl'] ?? ''); ?>">
+            <input type="url" id="editCategoryImage" name="image" value="<?php echo htmlspecialchars($category['ImagenUrl']); ?>">
         </div>
         <div class="form-actions">
             <button type="button" class="btn btn-outline" onclick="closeModal('editCategoryModal')">Cancelar</button>

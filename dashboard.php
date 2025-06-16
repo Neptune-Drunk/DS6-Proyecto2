@@ -132,7 +132,7 @@ $totalStock = 0; // Ajusta si tienes campo de stock
                         </thead>
                         <tbody id="productsTableBody">
                             <?php foreach ($products as $product): ?>
-                                <tr class="product-row" data-name="<?php echo strtolower($product['name']); ?>" data-category="<?php echo $product['category']; ?>">
+                                <tr class="product-row" data-name="<?php echo strtolower($product['name']); ?>" data-category="<?php echo $product['category']; ?>" data-product-id="<?php echo $product['id']; ?>">
                                     <td>
                                         <img src="<?php echo $product['image'] ? $product['image'] : 'NOTEXTURE.jpeg'; ?>" alt="<?php echo htmlspecialchars($product['name']); ?>" class="product-image" onerror="this.src='NOTEXTURE.jpeg'">
                                     </td>
@@ -150,7 +150,7 @@ $totalStock = 0; // Ajusta si tienes campo de stock
                                                 <a href="#" class="dropdown-item" onclick="editProduct(<?php echo $product['id']; ?>)">
                                                     <i class="fas fa-edit"></i> Editar
                                                 </a>
-                                                <a href="#" class="dropdown-item text-danger">
+                                                <a href="#" class="dropdown-item text-danger" onclick="deleteProduct(<?php echo $product['id']; ?>)">
                                                     <i class="fas fa-trash"></i> Eliminar
                                                 </a>
                                             </div>
@@ -246,7 +246,14 @@ $totalStock = 0; // Ajusta si tienes campo de stock
 
     <script>
         // Pasar datos PHP a JavaScript
-        window.categories = <?php echo json_encode($categories); ?>;
+        window.categories = <?php echo json_encode(array_map(function($cat) {
+            return [
+                'id' => intval($cat['id']),
+                'name' => $cat['name'],
+                'description' => $cat['description'],
+                'image' => $cat['image']
+            ];
+        }, $categories)); ?>;
         window.products = <?php echo json_encode($products); ?>;
 
         // Función para abrir modales
@@ -519,5 +526,6 @@ $totalStock = 0; // Ajusta si tienes campo de stock
         // Inicializar filtro al cargar
         filterProducts();
     </script>
+    <script src="script.js"></script>
 </body>
 </html>

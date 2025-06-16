@@ -211,40 +211,108 @@ function showNotification(message, type = "success") {
 
 // Gestión de categorías
 function editCategory(categoryId) {
-  const modal = document.getElementById("editCategoryModal")
-  modal.style.display = "block"
+  // Convertir categoryId a número
+  categoryId = parseInt(categoryId);
+  
+  // Obtener los datos de la categoría del array window.categories
+  const category = window.categories.find(cat => cat.id === categoryId);
+  if (!category) {
+    showNotification('Categoría no encontrada', 'error');
+    return;
+  }
 
-  loadFormContent("editCategoryFormContainer", "editar-categoria.php")
+  // Abrir el modal
+  const modal = document.getElementById('editCategoryModal');
+  modal.style.display = 'block';
+  
+  // Cargar el formulario
+  const container = document.getElementById('editCategoryFormContainer');
+  fetch('editar-categoria.php?id=' + categoryId)
+    .then(response => response.text())
+    .then(html => {
+      container.innerHTML = html;
+      const form = container.querySelector('#editCategoryForm');
+      if (form) {
+        form.addEventListener('submit', handleEditCategorySubmit);
+      }
+    })
+    .catch(error => {
+      console.error('Error al cargar el formulario de edición de categoría:', error);
+      container.innerHTML = '<p>Error al cargar el formulario</p>';
+    });
+}
+
+function handleEditCategorySubmit(event) {
+  event.preventDefault();
+  const form = event.target;
+  const formData = new FormData(form);
+
+  fetch('editar-categoria.php', {
+    method: 'POST',
+    body: formData
+  })
+  .then(response => response.json())
+  .then(data => {
+    if (data.success) {
+      showNotification(data.message, 'success');
+      closeModal('editCategoryModal');
+      window.location.reload();
+    } else {
+      showNotification(data.message, 'error');
+    }
+  })
+  .catch(error => {
+    console.error('Error:', error);
+    showNotification('Error al procesar la solicitud', 'error');
+  });
 }
 
 function deleteCategory(categoryId) {
-  const category = window.categories.find(cat => cat.id === categoryId)
+  // Convertir categoryId a número para asegurar la comparación correcta
+  categoryId = parseInt(categoryId);
+  
+  const category = window.categories.find(cat => parseInt(cat.id) === categoryId);
   if (!category) {
-    showNotification("Categoría no encontrada", "error")
-    return
+    showNotification("Categoría no encontrada", "error");
+    return;
   }
 
-  const productsInCategory = window.products.filter(product => product.category === category.name)
+  const productsInCategory = window.products.filter(product => product.category === category.name);
   const confirmMessage = productsInCategory.length > 0
     ? `Esta categoría tiene ${productsInCategory.length} producto(s) asociado(s). ¿Estás seguro de que quieres eliminarla? Los productos quedarán sin categoría.`
-    : `¿Estás seguro de que quieres eliminar la categoría "${category.name}"?`
+    : `¿Estás seguro de que quieres eliminar la categoría "${category.name}"?`;
 
-  if (!confirm(confirmMessage)) return
-
-  if (productsInCategory.length > 0) {
-    window.products.forEach(product => {
-      if (product.category === category.name) {
-        product.category = ""
-      }
-    })
-    updateProductsTable()
+  if (!confirm(confirmMessage)) {
+    return;
   }
 
-  window.categories = window.categories.filter(cat => cat.id !== categoryId)
-  document.querySelector(`[data-category-id="${categoryId}"]`)?.remove()
-  updateCategoryFilter()
-  updateCategoriesCount()
-  showNotification("Categoría eliminada exitosamente", "success")
+  const formData = new FormData();
+  formData.append('id', categoryId);
+
+  fetch('eliminar-categoria.php', {
+    method: 'POST',
+    body: formData
+  })
+  .then(response => response.json())
+  .then(data => {
+    if (data.success) {
+      showNotification(data.message, 'success');
+      // Eliminar la tarjeta de categoría
+      const categoryCard = document.querySelector(`.category-card[data-category-id="${categoryId}"]`);
+      if (categoryCard) {
+        categoryCard.remove();
+        updateCategoryCount();
+      }
+      // Recargar la página para actualizar los productos y categorías
+      window.location.reload();
+    } else {
+      showNotification(data.message, 'error');
+    }
+  })
+  .catch(error => {
+    console.error('Error:', error);
+    showNotification('Error al eliminar la categoría', 'error');
+  });
 }
 
 function updateCategoriesCount() {
@@ -296,4 +364,57 @@ function updateCategoryFilter() {
     option.textContent = category.name
     categoryFilter.appendChild(option)
   })
+}
+
+// Función para eliminar un producto
+function deleteProduct(productId) {
+    if (!confirm('¿Estás seguro de que quieres eliminar este producto?')) {
+        return;
+    }
+
+    const formData = new FormData();
+    formData.append('id', productId);
+
+    fetch('eliminar-producto.php', {
+        method: 'POST',
+        body: formData
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            showNotification(data.message, 'success');
+            // Eliminar la fila del producto de la tabla
+            const row = document.querySelector(`tr[data-product-id="${productId}"]`);
+            if (row) {
+                row.remove();
+                updateProductCount();
+            }
+            // Recargar la página para actualizar los contadores
+            window.location.reload();
+        } else {
+            showNotification(data.message, 'error');
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        showNotification('Error al eliminar el producto', 'error');
+    });
+}
+
+// Función para actualizar el contador de productos
+function updateProductCount() {
+    const productCount = document.getElementById('productCount');
+    if (productCount) {
+        const visibleProducts = document.querySelectorAll('.product-row:not([style*="display: none"])').length;
+        productCount.textContent = visibleProducts;
+    }
+}
+
+// Función para actualizar el contador de categorías
+function updateCategoryCount() {
+    const categoryCount = document.querySelector('.card-header h3');
+    if (categoryCount) {
+        const totalCategories = document.querySelectorAll('.category-card').length;
+        categoryCount.textContent = `Gestión de Categorías (${totalCategories})`;
+    }
 }
