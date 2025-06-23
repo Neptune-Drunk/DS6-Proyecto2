@@ -11,7 +11,7 @@
         <div class="login-card">
             <div class="logo-section">
                 <h1 class="logo">HyperDrive</h1>
-                <p class="welcome-text">Bienvenido a HyperDrive</p>
+                <p class="welcome-text">Bienveido a HyperDrive</p>
             </div>
             
             <form class="login-form" action="autenticar.php" method="post">
@@ -29,7 +29,7 @@
             </form>
             
             <div class="footer-text">
-                <p>Accede a tu catálogo empresarial</p>
+                <p>HyperDrive 2025</p>
             </div>
         </div>
     </div>

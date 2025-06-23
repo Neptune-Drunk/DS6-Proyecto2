@@ -28,10 +28,12 @@ if ($username && $password) {
                 echo 'Rol no válido.';
             }
         } else {
-            echo 'Contraseña incorrecta.';
+            echo "<script>alert('Contraseña incorrecta.'); window.location.href='login.php';</script>";
+            exit();
         }
     } else {
-        echo 'Usuario no encontrado.';
+        echo "<script>alert('Usuario no encontrado.'); window.location.href='login.php';</script>";
+        exit();
     }
     $stmt->close();
 } else {
