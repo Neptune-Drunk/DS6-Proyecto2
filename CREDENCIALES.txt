@@ -1,0 +1,7 @@
+Para Administrador es:
+Usuario: Administrador
+Contraseña: admin
+
+Para Consulta es:
+Usuario: Consulta
+Contraseña: consulta
